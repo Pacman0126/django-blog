@@ -29,13 +29,20 @@ def post_detail(request, slug):
 
     queryset = Post.objects.filter(status=1)
     post = get_object_or_404(queryset, slug=slug)
+    comments = post.comments.all().order_by("-created_on")
+    comment_count = post.comments.filter(approved=True).count()
 
     # context = {"post": post}
     return render(  # this is referred to as context, an object which is one database record sent to the template
         request,
         "blog/post_detail.html",
 
-        {"post": post, "coder": "Matt Rudge"},
+        {"post": post,
+         "comments": comments,
+         "comment_count": comment_count,
+         "coder": "Matt Rudge"
+         },
+
     )
 
 
