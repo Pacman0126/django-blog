@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.contrib import messages
 from .models import Post
+from .forms import CommentForm
 # from .models import Event
 
 
@@ -32,6 +34,20 @@ def post_detail(request, slug):
     comments = post.comments.all().order_by("-created_on")
     comment_count = post.comments.filter(approved=True).count()
 
+    if request.method == "POST":
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.author = request.user
+            comment.post = post
+            comment.save()
+            messages.add_message(
+                request, messages.SUCCESS,
+                'Comment submitted and awaiting approval'
+            )
+
+    comment_form = CommentForm()
+
     # context = {"post": post}
     return render(  # this is referred to as context, an object which is one database record sent to the template
         request,
@@ -40,7 +56,9 @@ def post_detail(request, slug):
         {"post": post,
          "comments": comments,
          "comment_count": comment_count,
-         "coder": "Matt Rudge"
+         "comment_form": comment_form,
+         "coder": "Matt Rudge",
+
          },
 
     )
